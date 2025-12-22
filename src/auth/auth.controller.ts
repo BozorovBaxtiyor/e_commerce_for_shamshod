@@ -32,7 +32,7 @@ export class AuthController {
       maxAge: 2 * 60 * 60 * 1000,
     });
 
-    return res.send({ success: true, user });
+    return res.send({ success: true, user , token});
   }
 
   @Post('register')

@@ -1,0 +1,75 @@
+version: '2.4'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ecommerce-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ecommerce_db
+      MYSQL_USER: ecommerce_user
+      MYSQL_PASSWORD: ecommerce_password
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql.conf:/etc/mysql/conf.d/mysql.cnf:ro
+    networks:
+      - ecommerce-network
+    # memory limit for small EC2
+    mem_limit: 350m
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 20s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-app
+    restart: always
+    ports:
+      - '3005:3000'
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: ecommerce_user
+      DB_PASSWORD: ecommerce_password
+      DB_DATABASE: ecommerce_db
+      JWT_SECRET: your_super_secret_jwt_key_here_change_in_production
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    mem_limit: 200m
+
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.seed
+    container_name: ecommerce-seed
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: ecommerce_user
+      DB_PASSWORD: ecommerce_password
+      DB_DATABASE: ecommerce_db
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+    profiles:
+      - seed
+
+volumes:
+  mysql_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
