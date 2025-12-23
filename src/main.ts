@@ -3,11 +3,15 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
+
+  // Global logging interceptor
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   // Swagger configuration
   const options = new DocumentBuilder()
@@ -31,11 +35,9 @@ async function bootstrap() {
     .addTag('E-Commerce')
     .build();
 
-  
-
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('/', app, document);
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3004);
 }
 bootstrap();
