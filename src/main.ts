@@ -9,11 +9,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: true, 
+    origin: 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
-
 
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
@@ -46,7 +45,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('/', app, document);
 
-  await app.listen(process.env.PORT || 3000 , () => {
+  await app.listen(process.env.PORT || 3000, () => {
     console.log(`Application is running on: ${process.env.PORT || 3000}`);
   });
 }

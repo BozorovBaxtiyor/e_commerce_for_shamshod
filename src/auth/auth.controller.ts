@@ -26,13 +26,18 @@ export class AuthController {
   async userLogin(@Body() userLoginDto: UserLoginDTO, @Res() res: Response) {
     const { token, user } = await this.authService.login(userLoginDto);
 
-    res.cookie('IsAuthenticated', true, { maxAge: 2 * 60 * 60 * 1000 }); //max age 2 hours
-    res.cookie('Authentication', token, {
+    const cookieOptions = {
       httpOnly: true,
-      maxAge: 2 * 60 * 60 * 1000,
-    });
+      maxAge: 2 * 60 * 60 * 1000, // 2 soat
+      sameSite: 'none' as const, // <--- MUHIM: Har xil domen/portlar ishlashi uchun
+      secure: true, // <--- MUHIM: sameSite: 'none' bo'lsa, bu true bo'lishi SHART
+    };
 
-    return res.send({ success: true, user , token});
+     res.cookie('IsAuthenticated', true, cookieOptions);
+     res.cookie('Authentication', token, cookieOptions);
+
+
+    return res.send({ success: true, user });
   }
 
   @Post('register')
